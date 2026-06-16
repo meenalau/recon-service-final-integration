@@ -1,0 +1,32 @@
+JSON Logging Current logs:
+2026-06-02 INFO Trade Created
+
+Trainer wants:
+{
+  "tradeId":"1001",
+  "action":"CREATE",
+  "timestamp":"2026-06-02T10:20:30"
+}
+Structured logging.Why?
+Normal logs:Trade created successfully
+Hard to search.
+JSON logs:
+{
+  "tradeId":"1001"
+}
+Easy for: Splunk , ELK, Kibana, Datadog
+-----------------
+step1
+
+Configure Logback JSON : Most projects use Logstash Encoder.
+
+<dependency>
+    <groupId>net.logstash.logback</groupId>
+    <artifactId>logstash-logback-encoder</artifactId>
+</dependency>
+
+Step 2:  Create:
+
+src/main/resources/logback-spring.xml
+
+

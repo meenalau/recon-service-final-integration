@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://host.docker.internal:5432/DeutscheBankDB
+    #url: jdbc:postgresql://localhost:5432/DeutscheBankDB
+    username: postgres
+    password: Ritwik123
+
+logging:
+  level:
+    root: WARN
+    com.db.recon.reconservice: DEBUG

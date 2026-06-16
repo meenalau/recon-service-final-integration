@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: recon-service
+
+  # ── Database ──────────────────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://host.docker.internal:5432/DeutscheBankDB
+    username: postgres
+    password: Ritwik123
+
+  # ── JPA / Hibernate ───────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # ── Liquibase ─────────────────────────────────────────────
+  liquibase:
+    #change-log: classpath:db/changelog/db.changelog-master.yaml
+     enabled: false
+
+  # ── Cache (Ehcache via JCache/JSR-107) ────────────────────
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
+
+  # ── Kafka ─────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: kafka:9092
+    #bootstrap-servers: localhost:9092
+    consumer:
+      group-id: recon-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+
+# ── Actuator + Prometheus ──────────────────────────────────
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health, info, prometheus, metrics, tracing
+  endpoint:
+    health:
+      show-details: always
+  # ── Zipkin (Spring Boot 3.x — micrometer-tracing) ─────────
+  zipkin:
+    tracing:
+      endpoint: http://host.docker.internal:9411/api/v2/spans
+      #endpoint: http://localhost:9411/api/v2/spans
+
+  # ── Tracing sample rate ───────────────────────────────────
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+
+# ── Swagger / OpenAPI ─────────────────────────────────────
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+# ── Logging ───────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    com.deutschebank.recon: DEBUG   # your package

@@ -1,0 +1,8 @@
+What                        	                Why
+Spring Boot 4.0.6 → 3.4.5   	                Version 4.x doesn't exist publicly; 3.4.5 is the latest stable
+Removed all fake -test artifacts	            spring-boot-starter-actuator-test etc. don't exist and break classpath resolution
+Kept spring-boot-starter-test	                Provides @MockBean, JUnit 5, Mockito, AssertJ
+Kept spring-security-test	                    Provides @WithMockUser
+Removed duplicate spring-boot-starter-webmvc	spring-boot-starter-web already includes Spring MVC
+Simplified compiler plugin	                    Merged two <execution> blocks into one top-level
+                                                 <configuration> — cleaner and equivalent

@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://host.docker.internal:5432/DeutscheBankDB
+    #url: jdbc:postgresql://localhost:5432/DeutscheBankDB
+    username: postgres
+    password: Ritwik123
+
+logging:
+  level:
+    root: INFO  # Framework logs → INFO
+    com.db.recon: DEBUG # Your code → DEBUG
+
+  # When root: DEBUG     Spring logs EVERYTHING: Spring Framework ,   #Hibernate,  #Tomcat,  #Liquibase,  #JMX
+                                          #RMI ,  #Actuator ,
+      #like sun.rmi.transport.tcp ,       #javax.management.remote.rmi ,     #org.apache.tomcat,    #org.springframework.beans
+    #which creates thousands of lines.
+

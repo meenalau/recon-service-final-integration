@@ -1,0 +1,334 @@
+Step 1: Add Kafka Dependency
+
+In pom.xml
+
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+
+Reload Maven.
+
+Step 2: Update application.yml  - check indentations if not proper it does not work
+it should come under spring:
+
+Add under spring
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: recon-group
+      auto-offset-reset: earliest
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+     Step 3: Create Event DTO
+
+      Create:
+
+      @Data
+      @AllArgsConstructor
+      public class TradeEvent {....
+
+Step 4: Create Producer
+
+@Service
+@RequiredArgsConstructor
+public class TradeEventPublisher {.....
+
+Step 5: Modify TradeServices
+
+Inject publisher. see trade service code  change
+
+TradeEvent event =
+            new TradeEvent(
+                    savedTrade.getTradeId(),
+                    savedTrade.getInstrumentId(),
+                    savedTrade.getTradeTimestamp().toString());
+
+    tradeEventPublisher.publishTradeEvent(event);
+
+Step 6: Create Consumer
+
+Create:TradeEventConsumer
+
+
+Step 7: Enable Kafka
+
+In your main class:
+
+@SpringBootApplication
+@EnableKafka
+public class ReconServiceApplication {
+}
+
+
+Step 8: Verify Kafka is Running start both in diff cmd prompt zookeeper and then kafka
+it is preinstalled
+
+so it will be
+D:\kafka_2.12-3.9.1>.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+
+open other command prompt :
+
+D:\kafka_2.12-3.9.1>bin\windows\kafka-server-start.bat config\server.properties
+
+
+Open 3rd command prompt:
+
+netstat -ano | findstr 9092
+
+Expected:
+
+LISTENING
+
+my system
+  TCP    0.0.0.0:9092           0.0.0.0:0              LISTENING       7760
+  TCP    172.19.48.1:9092       172.19.48.1:59025      ESTABLISHED     7760
+  TCP    172.19.48.1:59025      172.19.48.1:9092       ESTABLISHED     7760
+  TCP    [::]:9092              [::]:0                 LISTENING       7760
+
+
+If not listening, Kafka server is not started.
+
+
+Step 9: Verify Topic Exists
+
+Open:
+
+http://localhost:9000 - should start
+if not started
+
+Check whether topic exists
+
+
+
+D:\kafka_2.12-3.9.1>bin\windows\kafka-topics.bat --create --topic trades.settled --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic trades.settled.
+
+D:\kafka_2.12-3.9.1>bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092
+__consumer_offsets
+customer-account-topic
+demo-topic
+messageTopic
+trades.settled  ---> now this is added
+
+D:\kafka_2.12-3.9.1>
+
+(Kafdrop)
+
+download jar kafdrop-4.2.0.jar
+
+i kept it in Kafka folder D:\kafka_2.12-3.9.1
+
+cd D:\kafka_2.12-3.9.1
+then
+
+**** keep zookeepar and kafka running in two seperate cmd prompt
+
+
+D:\kafka_2.12-3.9.1>"C:\Program Files\Java\jdk-21\bin\java.exe" -jar kafdrop-4.2.0.jar --kafka.brokerConnect=localhost:9092
+
+
+all 3 prompts running
+start sprinboot app
+
+see ouput :
+Undertow started on port 9000 (http)
+Started Kafdrop in 9.207 seconds
+
+http://localhost:9000// for kafdrop
+
+Step 10: Test
+
+Call Swagger:
+
+POST /api/v1/trades
+
+Example:
+
+{
+  "tradeId": 11,
+  "traderName": "Test",
+  "tradingDesk": "Fixed Income",
+  "instrumentId": 105,
+  "counterpartyId": 10013,
+  "tradeType": "BUY",
+  "quantity": 2000000,
+  "price": 96.75,
+  "tradeReference": "TRD2026011",
+  "status": "SETTLED",
+  "tradeTimestamp": "2026-01-15T13:00:00"
+}
+
+
+Expected Result 1
+
+Database row inserted.
+
+select * from trades;
+
+New row visible.
+
+Expected Result 2
+
+Application console:
+
+Published Event :
+{
+ "tradeId":12,
+ "instrumentId":101,
+ "timestamp":"2026-06-02T19:15:30"
+}
+Expected Result 3
+
+Consumer log:
+
+BREAK DETECTED for trade 12
+Expected Result 4
+
+1. Kafka Producer Connected
+
+[Producer clientId=recon-service-producer-1] Cluster ID: a8cJ4mqzTqqCF-FPBmdzYQ
+
+Meaning:
+
+Spring Boot Producer
+        |
+Connected Successfully
+        |
+Kafka Broker
+
+✅ Producer can talk to Kafka.
+
+2. Event Published
+Published Event :
+{"tradeId":18,"instrumentId":105,"timestamp":"2026-06-03T00:35:59.606515600"}
+
+Meaning:
+
+Trade saved in DB
+       |
+TradeEventPublisher
+       |
+Topic: trades.settled
+
+✅ Message sent successfully.
+
+3. Producer Assigned ID
+ProducerId set to 5000 with epoch 0
+
+Kafka internal log.
+
+Nothing to worry about.
+
+✅ Normal.
+
+4. Consumer Received Message
+BREAK DETECTED for trade 18
+
+This is the most important line.
+
+It proves:
+
+Topic trades.settled
+         |
+         V
+TradeEventConsumer
+         |
+         V
+Message Received
+
+✅ Consumer working.
+
+End-to-End Flow Confirmed
+Swagger POST
+      |
+      V
+TradeController
+      |
+      V
+TradeService
+      |
+      V
+PostgreSQL
+      |
+      V
+TradeEventPublisher
+      |
+      V
+Kafka Topic
+(trades.settled)
+      |
+      V
+TradeEventConsumer
+      |
+      V
+BREAK DETECTED for trade 18
+
+{
+  "tradeId":12,
+  "instrumentId":101,
+  "timestamp":"2026-06-02T19:15:30"
+  }
+  ------------------
+
+Kafdrop is not part of Kafka itself. Starting:
+
+ZooKeeper
+Kafka Broker
+
+does not automatically start Kafdrop check java version - if 1.8 it will not support
+
+
+download jar kafdrop-4.2.0.jar
+
+i kept it in Kafka folder D:\kafka_2.12-3.9.1
+
+cd D:\kafka_2.12-3.9.1
+then
+
+**** keep zookeepar and kafka running in two seperate cmd prompt
+
+
+D:\kafka_2.12-3.9.1>"C:\Program Files\Java\jdk-21\bin\java.exe" -jar kafdrop-4.2.0.jar --kafka.brokerConnect=localhost:9092
+
+wait for few min
+Step 3: Watch the logs
+Started KafdropApplication or
+Tomcat started on port(s): 9000 or
+Started Kafdrop in XX seconds or
+
+
+
+What to test now
+Open:
+http://localhost:9000
+Click topic:
+trades.settled
+Use Swagger:
+http://localhost:8080/swagger-ui.html
+POST a new trade.
+Refresh Kafdrop.
+
+You should see a message similar to:
+
+{
+  "tradeId": 19,
+  "instrumentId": 105,
+  "timestamp": "2026-06-03T12:40:00"
+}
+
+and in Spring Boot logs:
+
+BREAK DETECTED for trade 19
+
+At that point you've demonstrated the complete producer → topic → consumer flow plus Kafdrop visualization.
+
+
+

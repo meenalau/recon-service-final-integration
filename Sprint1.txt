@@ -1,0 +1,170 @@
+Caching + Logging
+Requirement 1  :
+
+Add cache to   InstrumentService.findByIsin()
+Expected @EnableCaching  on main class.
+and
+@Cacheable("instruments") on service method.
+
+Requirement 2  Configure Cache
+
+Usually:  spring-boot-starter-cache
+        ehcache
+
+Requirement 3
+Verify Cache Hit
+Call API: GET /api/v1/instruments/INDGOV2035 or ASUGOV2032
+
+First time: DB hit
+Second time: Cache hit
+
+Requirement 4
+Visible in Actuator Metrics
+Open: /actuator/metrics
+Should show cache metrics.
+
+Trainer specifically wants:2nd findByIsin() should be cache hit.
+
+Requirement 5 :JSON Logging
+Log should contain:
+{
+  "tradeId":101,
+  "action":"CREATE",
+  "timestamp":"..."
+}
+Every important trade event.
+Examples:
+log.info(
+ "tradeId={}, action=CREATE, timestamp={}",
+ trade.getTradeId(),
+ Instant.now()
+);
+Then Logback converts to JSON.
+
+Sprint 1 Deliverables
+
+Checklist:
+
+Enable caching
+Add Ehcache dependency
+Add @Cacheable
+Configure actuator
+Verify cache hit
+Configure JSON logging
+Log tradeId
+Log action
+Log timestamp
+===================================
+
+SPRINT 2 : Custom Error Handling
+Requirement 1 :Global Exception Handler
+
+Create:
+
+GlobalExceptionHandler
+@ControllerAdvice
+public class GlobalExceptionHandler
+{Hibernate:
+     select
+         i1_0.instrument_id,
+         i1_0.asset_class,
+         i1_0.coupon_rate,
+         i1_0.currency,
+         i1_0.instrument_name,
+         i1_0.isin,
+         i1_0.issuer,
+         i1_0.maturity_date
+     from
+         instruments i1_0
+     where
+         i1_0.isin=?
+
+}
+Handles exceptions for entire application.
+
+Requirement 2 :Error Envelope
+Create DTO:
+lic record ErrorResponse(
+        String code,
+        String message,
+        LocalDateTime timestamp
+)
+{
+}
+Requirement 3
+
+Domain Exceptions
+
+Example:
+
+TradeNotFoundException
+InstrumentNotFoundException
+InvalidTradeException
+Requirement 4
+
+Return Clean JSON
+
+Example:
+
+{
+  "code":"INVALID_TRADE",
+  "message":"Quantity must be greater than zero",
+  "timestamp":"2026-06-02T12:00:00"
+}
+
+No stack trace.
+
+Requirement 5
+
+404 Handling
+
+Example:
+
+GET /api/v1/trades/99999
+
+Response:
+
+{
+  "code":"TRADE_NOT_FOUND",
+  "message":"Trade 99999 not found",
+  "timestamp":"..."
+}
+
+Status:
+
+404
+Sprint 2 Deliverables
+
+Checklist:
+ Global @ControllerAdvice
+ Error DTO
+Domain exceptions
+ Invalid trade returns 400
+Trade not found returns 404
+ Same JSON format everywhere
+ No stack trace in API response
+
+What You Will Most Likely Actually Code
+
+For your current Spring Boot project, the trainer will probably expect only these concrete changes:
+
+Sprint 1
+Add Cache dependencies
+Enable cache
+Add @Cacheable to InstrumentService.findByIsin()
+Configure Actuator metrics
+Configure JSON logging (Logback)
+Sprint 2
+Create ErrorResponse
+Create custom exceptions
+Create GlobalExceptionHandler
+Return 400 and 404 responses in clean JSON format
+
+If you share your current:
+
+pom.xml
+InstrumentService
+InstrumentController
+existing exception classes (if any)
+
+I can give the exact Day 6 code changes file-by-file for your project.

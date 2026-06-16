@@ -1,0 +1,15 @@
+[
+  {
+    "tradeId": 1,
+    "traderName": "Farhan",
+    "tradingDesk": "Fixed Income",
+    "instrumentId": 101,
+    "counterpartyId": 10011,
+    "tradeType": "BUY",
+    "quantity": 5000000,
+    "price": 101.25,
+    "tradeReference": "TRD2026001",
+    "status": "EXECUTED",
+    "tradeTimestamp": "2026-01-15T09:30:00"
+  }
+]

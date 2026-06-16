@@ -1,0 +1,108 @@
+What business problem is this solving?
+
+Currently your flow is:
+
+Trade Created
+      |
+      V
+Kafka Event
+      |
+      V
+BREAK DETECTED
+
+Suppose a reconciliation break exists:
+
+Break Id = BRK001
+Status = OPEN
+
+An operations user resolves it:
+
+PUT /api/v1/recon/breaks/BRK001/resolve
+
+Without Kafka:
+
+REST API
+   |
+   V
+Database Updated
+
+Only the current application knows the break was resolved.
+
+Why Kafka?
+
+Other systems may need to know:
+
+Audit Service
+Notification Service
+Reporting Service
+Dashboard Service
+
+Instead of calling all these directly:
+
+Recon Service
+   |
+   +--> Audit
+   +--> Reporting
+   +--> Dashboard
+
+publish an event:
+
+Recon Service
+      |
+      V
+Kafka Topic
+recon.breaks.resolved
+Any interested system can subscribe.
+
+---------
+Expected Architecture
+
+Current:
+
+POST Trade
+      |
+      V
+trades.settled
+      |
+      V
+BREAK DETECTED
+
+New:
+
+Resolve Break API
+      |
+      V
+recon.breaks.resolved
+      |
+      V
+BREAK RESOLVED
+xample Event
+
+When break gets resolved:
+
+{
+  "breakId": "BRK001",
+  "tradeId": 18,
+  "status": "RESOLVED",
+  "timestamp": "2026-06-03T14:00:00"
+}
+------------------
+
+
+bin\windows\kafka-topics.bat --create ^
+--topic recon.breaks.resolved ^
+--bootstrap-server localhost:9092 ^
+--partitions 1 ^
+--replication-factor 1
+
+-------
+Step 2
+
+Create event DTO
+
+public record BreakResolvedEvent(
+        String breakId,
+        Long tradeId,
+        String status,
+        String timestamp) {
+}

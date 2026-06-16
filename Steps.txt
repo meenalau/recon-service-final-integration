@@ -1,0 +1,303 @@
+What Day 6 is About
+
+Till now your application was mainly focused on:
+
+CRUD APIs
+Spring Security
+JPA/JdbcTemplate
+Liquibase
+Scheduling
+Pagination
+
+Day 6 focuses on Production Readiness.
+
+Questions that Production Support teams ask:
+
+Is application healthy?
+Why is response slow?
+How much memory is being used?
+Which APIs are called most?
+Can repeated DB calls be avoided?
+Can errors be shown cleanly to clients?
+Can logs be searched easily in Splunk/ELK?
+
+These topics solve those problems.
+
+MODULE 5 : Performance Tuning
+1. Performance Optimization Basics
+Problem
+
+Suppose API takes 3 seconds.
+
+Why?
+
+Maybe:
+
+Too many DB calls
+No indexes
+Large objects in memory
+Repeated queries
+Bad code
+
+Performance tuning means:
+
+Finding bottlenecks and reducing response time.
+
+2. Memory Management + Garbage Collection
+Problem
+
+Every request creates objects.
+
+Example:
+
+Trade trade = new Trade();
+
+Thousands of requests create thousands of objects.
+
+JVM Heap fills up.
+
+Solution
+
+Garbage Collector (GC)
+
+Automatically removes unused objects.
+
+Benefits:
+
+Prevent memory leak
+Avoid OutOfMemoryError
+
+You don't need coding here.
+
+Mostly interview/theory topic.
+
+3. Spring Boot Actuator
+Problem
+
+How do we know application health?
+
+Without Actuator:
+
+No visibility.
+
+Solution
+
+Add Actuator
+
+Dependency:
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+
+Useful URLs:
+
+/actuator/health
+/actuator/info
+/actuator/metrics
+/actuator/env
+
+Examples:
+
+http://localhost:8080/actuator/health
+
+Response:
+
+{
+  "status": "UP"
+}
+Why Needed?
+
+Production monitoring.
+
+4. DB Query Optimization
+Problem
+
+Database is usually slowest component.
+
+Example:
+
+SELECT * FROM trades
+
+returns 1 million rows.
+
+Bad.
+
+Indexes
+
+Without index:
+
+SELECT *
+FROM trades
+WHERE trade_id=100;
+
+DB scans whole table.
+
+With index:
+
+CREATE INDEX idx_trade_id
+ON trades(trade_id);
+
+Search becomes much faster.
+
+N+1 Problem
+
+Common JPA issue.
+
+Example:
+
+Load 100 trades.
+
+Then for each trade load instrument.
+
+1 query for trades
+
++
+100 queries for instruments
+
+Total:
+
+101 queries
+
+Called N+1 problem.
+
+Solution:
+
+JOIN FETCH
+
+or
+
+@EntityGraph
+
+Mostly theoretical for Sprint.
+
+5. Caching Strategies Overview
+Problem
+
+Suppose instrument rarely changes.
+
+API:
+
+GET /instruments/IBM123
+
+1000 users call it.
+
+Without cache:
+
+1000 DB hits
+
+Bad.
+
+With Cache
+
+First call:
+
+DB Hit
+
+Second call:
+
+Cache Hit
+
+No DB call.
+
+Faster.
+
+MODULE 6 : Monitoring, Logging & Caching
+1. Caching using @Cacheable
+
+This is your Sprint 1 task.
+
+Current
+InstrumentService.findByIsin()
+
+Every call hits DB.
+
+Required
+@Cacheable("instruments")
+public Instrument findByIsin(String isin)
+{
+    return repository.findByIsin(isin);
+}
+
+Meaning:
+
+First call:
+
+DB
+
+Second call:
+
+CACHE
+2. Structured JSON Logging
+Problem
+
+Current logs:
+
+Trade created successfully
+
+Hard to search.
+
+Required
+
+JSON logs
+
+Example
+
+{
+  "tradeId": 101,
+  "action": "CREATE",
+  "timestamp": "2026-06-02T10:00:00"
+}
+
+Benefits:
+
+Splunk
+ELK
+Kibana
+Datadog
+
+can search easily.
+
+3. Custom Error Handling
+Problem
+
+Current error:
+
+{
+  "timestamp":"...",
+  "status":500,
+  "error":"Internal Server Error",
+  "trace":"very long stack trace..."
+}
+
+Ugly.
+
+Security risk.
+
+Required
+{
+  "code":"TRADE_NOT_FOUND",
+  "message":"Trade 100 not found",
+  "timestamp":"2026-06-02T10:30:00"
+}
+
+Clean.
+
+Professional.
+
+4. Multi Environment Profiles
+
+Different configs for:
+
+dev
+qa
+prod
+
+Files:
+
+application-dev.yml
+application-qa.yml
+application-prod.yml
+
+Mostly theory unless trainer asks.
