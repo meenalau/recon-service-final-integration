@@ -98,7 +98,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/DeutscheBankDB
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
-      SPRING_LIQUIBASE_ENABLED: "true"
+      SPRING_LIQUIBASE_ENABLED: "false"
     ports:
       - "8080:8080"
     restart: on-failure

@@ -52,7 +52,14 @@ public class TradeService {
        // System.out.println("\t 3. Saved trade in db \t"+savedTrade);
         log.info("3. Saved trade in db \"+savedTrade");
 
-        TradeEvent event = new TradeEvent(savedTrade.getTradeId(), savedTrade.getInstrumentId(), savedTrade.getTradeTimestamp().toString());
+       // TradeEvent event = new TradeEvent(savedTrade.getTradeId(), savedTrade.getInstrumentId(), savedTrade.getTradeTimestamp().toString());
+        TradeEvent event = new TradeEvent(
+                savedTrade.getTradeId(),
+                savedTrade.getInstrumentId(),
+                savedTrade.getTradeTimestamp().toString(),
+                savedTrade.getQuantity(),
+                savedTrade.getPrice()
+        );
         tradeEventPublisher.publishTradeEvent(event);
 
         //A Span represents a single unit of work in a request flow.

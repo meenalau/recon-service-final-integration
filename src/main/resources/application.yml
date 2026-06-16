@@ -1,42 +1,4 @@
-spring:
-  application:
-    name: recon-service
-
-  # ── Database ──────────────────────────────────────────────
-  datasource:
-    url: jdbc:postgresql://host.docker.internal:5432/DeutscheBankDB
-    username: postgres
-    password: Ritwik123
-
-  # ── JPA / Hibernate ───────────────────────────────────────
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-  # ── Liquibase ─────────────────────────────────────────────
-  liquibase:
-    #change-log: classpath:db/changelog/db.changelog-master.yaml
-     enabled: false
-
-  # ── Cache (Ehcache via JCache/JSR-107) ────────────────────
-  cache:
-    jcache:
-      config: classpath:ehcache.xml
-
-  # ── Kafka ─────────────────────────────────────────────────
-  kafka:
-    bootstrap-servers: kafka:9092
-    #bootstrap-servers: localhost:9092
-    consumer:
-      group-id: recon-group
-      auto-offset-reset: earliest
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+spring: { application: { name: recon-service }, datasource: { url: jdbc:postgresql://host.docker.internal:5432/DeutscheBankDB, username: postgres, password: Ritwik123 }, jpa: { hibernate: { ddl-auto: update }, show-sql: true, properties: { hibernate: { format_sql: true } } }, liquibase: { enabled: false }, cache: { jcache: { config: classpath:ehcache.xml } }, kafka: { bootstrap-servers: kafka:9092, consumer: { group-id: recon-group, auto-offset-reset: earliest }, producer: { key-serializer: org.apache.kafka.common.serialization.StringSerializer, value-serializer: org.apache.kafka.common.serialization.StringSerializer } } }
 
 
 # ── Actuator + Prometheus ──────────────────────────────────
